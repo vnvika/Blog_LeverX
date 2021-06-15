@@ -1,4 +1,4 @@
-package org.vnvika.blog.Repository;
+package org.vnvika.blog.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.vnvika.blog.model.Article;
