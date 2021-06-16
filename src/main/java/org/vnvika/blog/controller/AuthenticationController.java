@@ -17,13 +17,11 @@ import org.vnvika.blog.service.UserService;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping(value = "/api/v1/auth/")
+@RequestMapping(value = "/api/auth/")
 @RequiredArgsConstructor
 public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
-
     private final TokenProvider tokenProvider;
-
     private final UserService userService;
 
     @PostMapping("login")

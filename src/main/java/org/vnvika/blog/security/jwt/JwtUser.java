@@ -9,8 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 
 @AllArgsConstructor
-//user for Spring Security
-public class JwtUser implements UserDetails {
+public class JwtUser implements UserDetails { //user for Spring Security
 
     private final Long id;
     private final String username;
