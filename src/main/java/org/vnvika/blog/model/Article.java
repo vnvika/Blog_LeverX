@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "article")
@@ -15,18 +16,26 @@ import java.time.LocalDate;
 public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private Long id;
     private String title;
     private String text;
 
     @Enumerated(EnumType.STRING)
     private StatusArticle status;
 
-    @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
-    private User user;
-    @Column( name = "created_at")
+    @Column(name = "created_at")
     private LocalDate createdAt;
-    @Column( name = "updated_at")
+
+    @Column(name = "updated_at")
     private LocalDate updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToMany(mappedBy = "article")
+    private List<Comment> comments;
+
+    @ManyToMany(mappedBy = "articles", fetch = FetchType.LAZY)
+    private List<Tag> tags;
 }

@@ -28,8 +28,11 @@ public class User extends BaseEntity {
     @Column(name = "password")
     private String password;
 
-    @OneToMany(mappedBy="user")
+    @OneToMany(mappedBy = "user")
     private List<Article> articles;
+
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
