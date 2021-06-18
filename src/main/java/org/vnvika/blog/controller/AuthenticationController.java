@@ -22,7 +22,6 @@ import javax.validation.Valid;
 public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
-    private final UserService userService;
 
     @PostMapping("login")
     public ResponseEntity<TokenResponseDto> login(@RequestBody @Valid AuthenticationRequestDto requestDto) {
@@ -30,9 +29,8 @@ public class AuthenticationController {
         final String username = requestDto.getUsername();
         final String password = requestDto.getPassword();
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        User user = userService.findByUsername(username);
 
-        String token = tokenProvider.createToken(username, user.getRoles());
+        String token = tokenProvider.createToken(username);
 
         final TokenResponseDto tokenResponseDto = TokenResponseDto.builder()
                 .username(username)

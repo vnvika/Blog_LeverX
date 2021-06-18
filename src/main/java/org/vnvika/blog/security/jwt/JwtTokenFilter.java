@@ -1,9 +1,6 @@
 package org.vnvika.blog.security.jwt;
 
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -24,7 +21,7 @@ public class JwtTokenFilter extends GenericFilterBean {
             throws IOException, ServletException {
 
         final String token = tokenProvider.resolveToken((HttpServletRequest) req);
-        if (tokenProvider.validateToken(token)) {
+        if (token!=null && tokenProvider.validateToken(token)) {
            final Authentication auth = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }

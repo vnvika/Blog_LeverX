@@ -1,19 +1,21 @@
 package org.vnvika.blog.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.vnvika.blog.model.StatusArticle;
-import org.vnvika.blog.model.User;
 
-import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
 public class ArticleDto {
-    private final Integer id;
-    private final String title;
-    private final String text;
-    private final StatusArticle status;
-    private final Long userId;
-    private final LocalDate createdAt;
-    private final LocalDate updatedAt;
+    @NotBlank
+    private String title;
+    @NotBlank
+    private String text;
+    private StatusArticle status;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 }

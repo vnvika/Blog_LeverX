@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface TokenProvider {
-    String createToken(String username, List<Role> roles);
+    String createToken(String username);
 
     Authentication getAuthentication(String token);
 

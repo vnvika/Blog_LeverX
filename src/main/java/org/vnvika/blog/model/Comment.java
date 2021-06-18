@@ -17,11 +17,11 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name="message")
+    @Column(name = "message")
     private String message;
 
     @ManyToOne
-    @JoinColumn(name="article_id")
+    @JoinColumn(name = "article_id")
     private Article article;
 
     @ManyToOne
