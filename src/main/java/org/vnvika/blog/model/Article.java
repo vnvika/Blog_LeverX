@@ -1,8 +1,6 @@
 package org.vnvika.blog.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -36,8 +34,13 @@ public class Article {
     private User user;
 
     @OneToMany(mappedBy = "article")
-    private List<Comment> comments;
+    private Set<Comment> comments;
 
-    @ManyToMany(mappedBy = "articles", fetch = FetchType.LAZY)
-    private List<Tag> tags;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "article_tags",
+            joinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "article_id", referencedColumnName = "id")})
+    private Set<Tag> tags;
 }

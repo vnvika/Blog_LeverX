@@ -1,11 +1,10 @@
 package org.vnvika.blog.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "Tag")
@@ -20,9 +19,8 @@ public class Tag {
     @Column(name = "name")
     private String name;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "article_tags",
-            joinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "article_id", referencedColumnName = "id")})
-    private List<Article> articles;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "tags",cascade  = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    private Set<Article> articles;
 }

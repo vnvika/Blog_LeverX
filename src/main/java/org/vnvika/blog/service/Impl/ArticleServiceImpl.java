@@ -17,9 +17,12 @@ import org.vnvika.blog.repository.TagRepository;
 import org.vnvika.blog.repository.UserRepository;
 import org.vnvika.blog.service.ArticleService;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -44,23 +47,38 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public Article save(ArticleDto articleDto) {
         final Article article = ArticleMapper.INSTANCE.fromDTO(articleDto);
+        article.setTags(iterateTags(article));
         article.setUser(userRepository.getByUsername(getUsernameOfCurrentUser()));
         article.setCreatedAt(LocalDate.now());
         article.setUpdatedAt(LocalDate.now());
-        article.setTags(iterateTags(article));
-        return article;
+        log.info("Created article {}", article);
+        return articleRepository.save(article);
     }
 
     @Override
+    @Transactional
     public Article update(ArticleDto articleDto, Long articleId) {
-        return null;
+        final Article article = articleRepository.getById(articleId);
+        if (article == null || !article.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
+            throw new IllegalArgumentException("Article not found or you don't have access");
+        }
+        article.setUpdatedAt(LocalDate.now());
+        return articleRepository.save(article);
     }
 
     @Override
-    public Article delete(Long articleId) {
-        return null;
+    @Transactional
+    public void delete(Long articleId) {
+        final Article article = articleRepository.getById(articleId);
+        if (article != null && article.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
+            articleRepository.delete(article);
+            log.info("Delete completed");
+        } else {
+            throw new IllegalArgumentException("Article not found or you don't have access");
+        }
     }
 
 
@@ -84,8 +102,8 @@ public class ArticleServiceImpl implements ArticleService {
         return username;
     }
 
-    private List<Tag> iterateTags(Article article) {
-        List<Tag> tags = new ArrayList<>();
+    private Set<Tag> iterateTags(Article article) {
+        final Set<Tag> tags = new HashSet<>();
         for (Tag tag : article.getTags()) {
             Tag currentTag = tagRepository.findByName(tag.getName());
             if (currentTag == null) {

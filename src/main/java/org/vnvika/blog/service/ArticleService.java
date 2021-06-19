@@ -10,5 +10,5 @@ public interface ArticleService {
     ArticlePageDto getAllUserArticles(Pageable pageable);
     Article save(ArticleDto articleDto);
     Article update(ArticleDto articleDto, Long articleId);
-    Article delete(Long articleId);
+    void delete(Long articleId);
 }

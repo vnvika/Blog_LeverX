@@ -3,10 +3,11 @@ package org.vnvika.blog.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.vnvika.blog.model.StatusArticle;
+import org.vnvika.blog.model.Tag;
 
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +19,5 @@ public class ArticleDto {
     private StatusArticle status;
     private LocalDate createdAt;
     private LocalDate updatedAt;
+    Set<Tag> tags;
 }

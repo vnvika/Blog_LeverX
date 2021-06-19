@@ -14,6 +14,7 @@ import org.vnvika.blog.service.UserService;
 
 import java.util.List;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 @Service
@@ -31,7 +32,7 @@ public class UserServiceImpl implements UserService {
         final Role roleUser = roleRepository.findByName(ROLE_USER);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(singletonList(roleUser));
+        user.setRoles(singleton(roleUser));
         user.setStatus(StatusUser.ACTIVE);
 
         final User registerUser = userRepository.save(user);

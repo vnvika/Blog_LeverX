@@ -2,6 +2,8 @@ package org.vnvika.blog.mapper;
 
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.vnvika.blog.dto.ArticleDto;
 import org.vnvika.blog.model.Article;

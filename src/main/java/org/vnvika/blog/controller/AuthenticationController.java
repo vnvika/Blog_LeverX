@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.vnvika.blog.dto.AuthenticationRequestDto;
 import org.vnvika.blog.dto.TokenResponseDto;
-import org.vnvika.blog.model.User;
 import org.vnvika.blog.security.jwt.TokenProvider;
-import org.vnvika.blog.service.UserService;
 
 import javax.validation.Valid;
 
