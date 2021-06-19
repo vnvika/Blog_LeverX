@@ -4,9 +4,8 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+
 
 @Entity
 @Table(name = "article")
@@ -29,10 +28,14 @@ public class Article {
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "article")
     private Set<Comment> comments;
 

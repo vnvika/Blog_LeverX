@@ -3,8 +3,8 @@ package org.vnvika.blog.model;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Set;
+
 
 @Entity
 @Table(name = "Tag")
@@ -21,6 +21,6 @@ public class Tag {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToMany(mappedBy = "tags",cascade  = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "tags", cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private Set<Article> articles;
 }

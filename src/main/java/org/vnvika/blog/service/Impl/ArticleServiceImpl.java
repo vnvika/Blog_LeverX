@@ -81,7 +81,6 @@ public class ArticleServiceImpl implements ArticleService {
         }
     }
 
-
     private ArticlePageDto getArticlePageDto(Page<Article> articlesPage, Pageable pageable) {
         final List<ArticleDto> articleDtos = new ArrayList<>();
         for (Article article : articlesPage.getContent()) {

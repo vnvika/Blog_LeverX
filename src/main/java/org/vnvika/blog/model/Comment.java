@@ -1,11 +1,10 @@
 package org.vnvika.blog.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+
 
 @Entity
 @Table(name = "Comment")
@@ -20,10 +19,14 @@ public class Comment {
     @Column(name = "message")
     private String message;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "article_id")
     private Article article;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
