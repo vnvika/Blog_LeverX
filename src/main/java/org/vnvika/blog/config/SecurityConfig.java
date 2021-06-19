@@ -20,6 +20,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final TokenProvider tokenProvider;
 
     private static final String LOGIN_ENDPOINTS = "/api/auth/*";
+    private static final String REGISTER_ENDPOINTS = "/api/registration";
+    private static final String ACTIVATE_ENDPOINTS = "/api/registration/activate/*";
     private static final String MAIN_ENDPOINTS = "/api/articles/all";
 
     @Bean
@@ -32,7 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers(LOGIN_ENDPOINTS, MAIN_ENDPOINTS).permitAll()
+                .antMatchers(LOGIN_ENDPOINTS, MAIN_ENDPOINTS, REGISTER_ENDPOINTS, ACTIVATE_ENDPOINTS).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtTokenFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class)
