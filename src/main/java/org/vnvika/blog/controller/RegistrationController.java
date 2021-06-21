@@ -26,6 +26,5 @@ public class RegistrationController {
     @GetMapping("/activate/{code}")
     public void activate(@PathVariable String code, HttpServletResponse response) throws IOException {
         UserMapper.INSTANCE.toDTO(userService.activateUser(code));
-        response.sendRedirect("http://localhost:9090/api/auth/login");
     }
 }

@@ -15,6 +15,10 @@ public interface UserService {
 
     User activateUser(String code);
 
+    User forgotPassword(UserDto userDto);
+
+    User resetPassword(String code, UserDto userDto);
+
     User findById(Long id);
 
     void delete(Long id);

@@ -51,28 +51,19 @@ public class UserServiceImpl implements UserService {
     public User register(UserDto userDto) {
         User user = UserMapper.INSTANCE.fromDTO(userDto);
         User existUser = userRepository.getByUsername(user.getUsername());
-        if (existUser != null) {
+        if (existUser != user) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT, "User is exist");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setActivate(false);
-        user.setActivationCode(UUID.randomUUID().toString());
-        if (StringUtils.isEmpty(user.getEmail())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN, "Email is invalid");
-        }
-        String message = String.format(
-                "Hello, %s! \n" +
-                        "Welcome to here. Please, visit next link: http://localhost:9090/api/registration/activate/%s",
-                user.getUsername(),
-                user.getActivationCode());
 
-        mailSender.send(user.getEmail(), "Activation Code", message);
-        User registeredUser = userRepository.save(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User registeredUser = setActivateCode(user);
+
+        sendMessage(registeredUser);
         log.info("Register - user: {} should activate account", registeredUser);
-        return registeredUser;
+        return userRepository.save(registeredUser);
     }
+
 
     @Override
     public User activateUser(String code) {
@@ -83,6 +74,40 @@ public class UserServiceImpl implements UserService {
             }
             user.setActivationCode(null);
             user.setActivate(true);
+            log.info("ActivateUser - user: {} successfully activated", user);
+            return userRepository.save(user);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Access denied, user already activated or not registered", ex);
+        }
+    }
+
+    @Override
+    public User forgotPassword(UserDto userDto) {
+        User user = UserMapper.INSTANCE.fromDTO(userDto);
+        User existUser = userRepository.getByUsername(user.getUsername());
+        if (existUser != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "User is exist");
+        }
+
+        User forgotPasswordUser = setActivateCode(user);
+        sendMessage(forgotPasswordUser);
+        log.info("forgotPasswordUser - user: {} should activate account", forgotPasswordUser);
+        return forgotPasswordUser;
+    }
+
+    @Override
+    public User resetPassword(String code, UserDto userDto) {
+        User user = UserMapper.INSTANCE.fromDTO(userDto);
+        User userFromDataBase = userRepository.findByActivationCode(code);
+        try {
+            if (user == userFromDataBase) {
+                throw new IllegalArgumentException("Invalid user activation code");
+            }
+            user.setActivationCode(null);
+            user.setActivate(true);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             log.info("ActivateUser - user: {} successfully activated", user);
             return userRepository.save(user);
         } catch (IllegalArgumentException ex) {
@@ -104,5 +129,25 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         userRepository.deleteById(id);
         log.info("Delete - user with id: {} successfully deleted", id);
+    }
+
+    private User setActivateCode(User user) {
+        user.setActivate(false);
+        user.setActivationCode(UUID.randomUUID().toString());
+        if (StringUtils.isEmpty(user.getEmail())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Email is invalid");
+        }
+        return user;
+    }
+
+    private void sendMessage(User user) {
+        String message = String.format(
+                "Hello, %s! \n" +
+                        "Welcome to here. Please, visit next link: http://localhost:9090/api/registration/activate/%s",
+                user.getUsername(),
+                user.getActivationCode());
+
+        mailSender.send(user.getEmail(), "Activation Code", message);
     }
 }
