@@ -43,7 +43,7 @@ public class Article {
     @ToString.Exclude
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "article_tags",
-            joinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "article_id", referencedColumnName = "id")})
+            joinColumns = {@JoinColumn(name = "article_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "id")})
     private Set<Tag> tags;
 }
