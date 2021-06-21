@@ -19,5 +19,5 @@ public class ArticleDto {
     private StatusArticle status;
     private LocalDate createdAt;
     private LocalDate updatedAt;
-    Set<Tag> tags;
+    private Set<TagDto> tags;
 }

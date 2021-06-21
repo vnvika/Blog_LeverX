@@ -3,9 +3,8 @@ package org.vnvika.blog.service.Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.vnvika.blog.dto.TagCloudDto;
 import org.vnvika.blog.dto.TagDto;
-import org.vnvika.blog.dto.TokenResponseDto;
+import org.vnvika.blog.mapper.TagMapper;
 import org.vnvika.blog.model.Tag;
 import org.vnvika.blog.repository.TagRepository;
 import org.vnvika.blog.service.TagService;
@@ -20,10 +19,13 @@ public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
 
     @Override
-    public List<TagCloudDto> getCountArticles() {
-        List<Tag> tags = tagRepository.findAll();
-        List<TagCloudDto> tagCloudDtos = new ArrayList<>();
-
-        return null;
+    public List<TagDto> getCountArticles() {
+        List<Tag> tags = tagRepository.findTagCloud();
+        List<TagDto> tagDtos = new ArrayList<>();
+        for (Tag tag : tags) {
+            TagDto tagDto = TagMapper.INSTANCE.toDTO(tag);
+            tagDtos.add(tagDto);
+        }
+        return tagDtos;
     }
 }
