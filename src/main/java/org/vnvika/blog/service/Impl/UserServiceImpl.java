@@ -2,19 +2,22 @@ package org.vnvika.blog.service.Impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.vnvika.blog.model.Role;
-import org.vnvika.blog.model.StatusUser;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
+import org.vnvika.blog.dto.UserDto;
+import org.vnvika.blog.mapper.UserMapper;
 import org.vnvika.blog.model.User;
 import org.vnvika.blog.repository.RoleRepository;
 import org.vnvika.blog.repository.UserRepository;
+import org.vnvika.blog.service.MailSender;
 import org.vnvika.blog.service.UserService;
 
 import java.util.List;
-
-import static java.util.Collections.singletonList;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -25,21 +28,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final MailSender mailSender;
 
-    @Override
-    public User register(User user) {
-        final Role roleUser = roleRepository.findByName(ROLE_USER);
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(singletonList(roleUser));
-        user.setStatus(StatusUser.ACTIVE);
-
-        final User registerUser = userRepository.save(user);
-
-        log.info("Register - user: {} successfully registered", registerUser);
-
-        return registerUser;
-    }
 
     @Override
     public List<User> getAll() {
@@ -58,6 +48,75 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User register(UserDto userDto) {
+        User user = UserMapper.INSTANCE.fromDTO(userDto);
+        User existUser = userRepository.getByUsername(user.getUsername());
+        if (existUser != user) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "User is exist");
+        }
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User registeredUser = setActivateCode(user);
+
+        sendMessage(registeredUser);
+        log.info("Register - user: {} should activate account", registeredUser);
+        return userRepository.save(registeredUser);
+    }
+
+
+    @Override
+    public User activateUser(String code) {
+        User user = userRepository.findByActivationCode(code);
+        try {
+            if (user == null) {
+                throw new IllegalArgumentException("Invalid user activation code");
+            }
+            user.setActivationCode(null);
+            user.setActivate(true);
+            log.info("ActivateUser - user: {} successfully activated", user);
+            return userRepository.save(user);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Access denied, user already activated or not registered", ex);
+        }
+    }
+
+    @Override
+    public User forgotPassword(UserDto userDto) {
+        User user = UserMapper.INSTANCE.fromDTO(userDto);
+        User existUser = userRepository.getByUsername(user.getUsername());
+        if (existUser != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "User is exist");
+        }
+
+        User forgotPasswordUser = setActivateCode(user);
+        sendMessage(forgotPasswordUser);
+        log.info("forgotPasswordUser - user: {} should activate account", forgotPasswordUser);
+        return forgotPasswordUser;
+    }
+
+    @Override
+    public User resetPassword(String code, UserDto userDto) {
+        User user = UserMapper.INSTANCE.fromDTO(userDto);
+        User userFromDataBase = userRepository.findByActivationCode(code);
+        try {
+            if (user == userFromDataBase) {
+                throw new IllegalArgumentException("Invalid user activation code");
+            }
+            user.setActivationCode(null);
+            user.setActivate(true);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            log.info("ActivateUser - user: {} successfully activated", user);
+            return userRepository.save(user);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Access denied, user already activated or not registered", ex);
+        }
+    }
+
+    @Override
     public User findById(Long id) {
         User result = userRepository.findById(id).orElseThrow(
                 () -> new UsernameNotFoundException("User is not found"));
@@ -70,5 +129,25 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         userRepository.deleteById(id);
         log.info("Delete - user with id: {} successfully deleted", id);
+    }
+
+    private User setActivateCode(User user) {
+        user.setActivate(false);
+        user.setActivationCode(UUID.randomUUID().toString());
+        if (StringUtils.isEmpty(user.getEmail())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Email is invalid");
+        }
+        return user;
+    }
+
+    private void sendMessage(User user) {
+        String message = String.format(
+                "Hello, %s! \n" +
+                        "Welcome to here. Please, visit next link: http://localhost:9090/api/registration/activate/%s",
+                user.getUsername(),
+                user.getActivationCode());
+
+        mailSender.send(user.getEmail(), "Activation Code", message);
     }
 }

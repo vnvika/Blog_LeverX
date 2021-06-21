@@ -1,11 +1,11 @@
 package org.vnvika.blog.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Set;
+
 
 @Entity
 @Table(name = "article")
@@ -15,18 +15,35 @@ import java.time.LocalDate;
 public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private Long id;
     private String title;
     private String text;
 
     @Enumerated(EnumType.STRING)
     private StatusArticle status;
 
-    @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
-    private User user;
-    @Column( name = "created_at")
+    @Column(name = "created_at")
     private LocalDate createdAt;
-    @Column( name = "updated_at")
+
+    @Column(name = "updated_at")
     private LocalDate updatedAt;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "article")
+    private Set<Comment> comments;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "article_tags",
+            joinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "article_id", referencedColumnName = "id")})
+    private Set<Tag> tags;
 }

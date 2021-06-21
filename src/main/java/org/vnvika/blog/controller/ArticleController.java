@@ -1,42 +1,49 @@
 package org.vnvika.blog.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.vnvika.blog.repository.ArticleRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.vnvika.blog.dto.ArticleDto;
+import org.vnvika.blog.dto.ArticlePageDto;
+import org.vnvika.blog.mapper.ArticleMapper;
 import org.vnvika.blog.model.Article;
-import org.vnvika.blog.model.StatusArticle;
+import org.vnvika.blog.service.ArticleService;
 
-import java.util.Map;
+import javax.validation.Valid;
 
 @RestController
+@RequestMapping(value = "/api")
+@RequiredArgsConstructor
 public class ArticleController {
-    private final ArticleRepository articleRepository;
+    private final ArticleService articleService;
 
-    public ArticleController(ArticleRepository articleRepository) {
-        this.articleRepository = articleRepository;
+    @GetMapping("/articles/all")
+    public ResponseEntity<ArticlePageDto> getAllPublicArticles(Pageable pageable) {
+        return ResponseEntity.ok(articleService.getAllPublicArticles(pageable));
     }
 
-    @GetMapping("/articles")
-    public String main(Map<String, Object> model) {
-        Iterable<Article> articles = articleRepository.findAll();
-
-        model.put("articles", articles);
-
-        return "main";
+    @GetMapping("/articles/my")
+    public ResponseEntity<ArticlePageDto> getAllUserArticles(Pageable pageable) {
+        return ResponseEntity.ok(articleService.getAllUserArticles(pageable));
     }
 
     @PostMapping("/articles")
-    public String add(@RequestParam String title, @RequestParam String text, Map<String, Object> model) {
-//        Article article = new Article(title,text, StatusArticle.PUBLIC,0);
-//
-//        articleRepository.save(article);
-//
-//        Iterable<Article> articles = articleRepository.findAll();
-//
-//        model.put("articles", articles);
+    public ResponseEntity<ArticleDto> save(@Valid @RequestBody ArticleDto articleDto) {
+        Article article = articleService.save(articleDto);
+        return ResponseEntity.ok(ArticleMapper.INSTANCE.toDTO(article));
+    }
 
-        return "main";
+    @PutMapping("/articles/{articleId}")
+    public ResponseEntity<ArticleDto> update(@Valid @RequestBody ArticleDto articleDto, @PathVariable Long articleId) {
+        Article article = articleService.update(articleDto, articleId);
+        return ResponseEntity.ok(ArticleMapper.INSTANCE.toDTO(article));
+    }
+
+    @DeleteMapping("/articles/{articleId}")
+    @ResponseStatus(value = HttpStatus.OK)
+    public void delete(@PathVariable long articleId) {
+        articleService.delete(articleId);
     }
 }

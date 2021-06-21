@@ -2,9 +2,10 @@ package org.vnvika.blog.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 
 @EqualsAndHashCode(callSuper = true)
@@ -28,12 +29,23 @@ public class User extends BaseEntity {
     @Column(name = "password")
     private String password;
 
-    @OneToMany(mappedBy="user")
-    private List<Article> articles;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "user")
+    private Set<Article> articles;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "user")
+    private Set<Comment> comments;
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
-    private List<Role> roles;
+    private Set<Role> roles;
+    private boolean activate;
+    private String activationCode;
 }

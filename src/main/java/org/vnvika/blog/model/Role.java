@@ -1,13 +1,12 @@
 package org.vnvika.blog.model;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
-import java.util.List;
+import javax.persistence.*;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -20,6 +19,7 @@ public class Role extends BaseEntity {
     @Column(name = "name")
     private String name;
 
+
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private List<User> users;
+    private Set<User> users;
 }
