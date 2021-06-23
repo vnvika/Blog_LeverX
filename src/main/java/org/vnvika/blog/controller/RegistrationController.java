@@ -24,7 +24,8 @@ public class RegistrationController {
     }
 
     @GetMapping("/activate/{code}")
-    public void activate(@PathVariable String code, HttpServletResponse response) throws IOException {
-        UserMapper.INSTANCE.toDTO(userService.activateUser(code));
+    @ResponseStatus(value = HttpStatus.OK)
+    public void activate(@PathVariable String code) throws IOException {
+        userService.activateUser(code);
     }
 }
