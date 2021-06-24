@@ -19,7 +19,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final TokenProvider tokenProvider;
 
-    private static final String LOGIN_ENDPOINTS = "/api/auth/*";
+    private static final String LOGIN_ENDPOINTS = "/api/auth/**";
     private static final String REGISTER_ENDPOINTS = "/api/registration";
     private static final String ACTIVATE_ENDPOINTS = "/api/registration/activate/*";
     private static final String MAIN_ENDPOINTS = "/api/articles/all";
