@@ -78,7 +78,7 @@ public class ArticleServiceImpl implements ArticleService {
     public void delete(Long articleId) {
         final Article article = articleRepository.getById(articleId);
         if (article != null && article.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
-            articleRepository.delete(article);
+            articleRepository.deleteById(article.getId());
             log.info("Delete completed");
         } else {
             throw new IllegalArgumentException("Article not found or you don't have access");
