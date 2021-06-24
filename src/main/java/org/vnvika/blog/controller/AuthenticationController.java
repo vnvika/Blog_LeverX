@@ -13,7 +13,6 @@ import org.vnvika.blog.mapper.UserMapper;
 import org.vnvika.blog.security.jwt.TokenProvider;
 import org.vnvika.blog.service.UserService;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 
@@ -44,12 +43,12 @@ public class AuthenticationController {
 
     @PostMapping("forgot_password")
     @ResponseStatus(value = HttpStatus.OK)
-    public void register(@Valid @RequestBody UserDto user) {
-        UserMapper.INSTANCE.toDTO(userService.forgotPassword(user));
+    public void register(@RequestBody UserDto userDto) {
+        UserMapper.INSTANCE.toDTO(userService.forgotPassword(userDto));
     }
 
     @GetMapping("reset/{code}")
-    public void activate(@PathVariable String code, @Valid @RequestBody UserDto user, HttpServletResponse response) throws IOException {
-        UserMapper.INSTANCE.toDTO(userService.resetPassword(code,user));
+    public void activate(@PathVariable String code, @RequestBody UserDto user) throws IOException {
+        UserMapper.INSTANCE.toDTO(userService.resetPassword(code, user));
     }
 }

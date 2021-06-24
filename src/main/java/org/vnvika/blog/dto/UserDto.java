@@ -19,8 +19,6 @@ public class UserDto {
     @NotNull(message = "Email can't be null")
     @Email
     private String email;
-    private boolean activate;
-    private String activationCode;
     @NotNull(message = "Password can't be null")
     @Size(min = 8, max = 16, message = "Password must be equal or greater than 8 characters and less than 16 characters")
     private String password;

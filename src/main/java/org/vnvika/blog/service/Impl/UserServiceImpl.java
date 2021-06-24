@@ -10,12 +10,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.vnvika.blog.dto.UserDto;
 import org.vnvika.blog.mapper.UserMapper;
+import org.vnvika.blog.model.ActivateCode;
+import org.vnvika.blog.model.StatusUser;
 import org.vnvika.blog.model.User;
-import org.vnvika.blog.repository.RoleRepository;
+import org.vnvika.blog.repository.ActivateCodeRepository;
 import org.vnvika.blog.repository.UserRepository;
 import org.vnvika.blog.service.MailSender;
 import org.vnvika.blog.service.UserService;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,19 +27,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    public static final String ROLE_USER = "ROLE_USER";
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailSender mailSender;
+    private final ActivateCodeRepository activateCodeRepository;
 
-
-    @Override
-    public List<User> getAll() {
-        final List<User> result = userRepository.findAll();
-        log.info("GetAll - {} users found", result.size());
-        return result;
-    }
 
     @Override
     public User findByUsername(String name) {
@@ -51,31 +46,40 @@ public class UserServiceImpl implements UserService {
     public User register(UserDto userDto) {
         User user = UserMapper.INSTANCE.fromDTO(userDto);
         User existUser = userRepository.getByUsername(user.getUsername());
-        if (existUser != user) {
+        if (existUser == user) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT, "User is exist");
         }
-
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User registeredUser = setActivateCode(user);
+        user.setStatus(StatusUser.NOT_ACTIVE);
+        user.setCreated(new Date());
+        user.setUpdated(new Date());
+        ActivateCode activateCode = setActivateCode(user);
+        sendMessageRegistration(user, activateCode.getActivateCode());
 
-        sendMessage(registeredUser);
-        log.info("Register - user: {} should activate account", registeredUser);
-        return userRepository.save(registeredUser);
+        log.info("Register - user: {} should activate account", user);
+        return userRepository.save(user);
     }
 
-
     @Override
-    public User activateUser(String code) {
-        User user = userRepository.findByActivationCode(code);
+    public void activateUser(String code) {
+        List<ActivateCode> activateCodes = (List<ActivateCode>) activateCodeRepository.findAll();
+        ActivateCode activateCode = activateCodes.stream()
+                .filter(currentCode -> code.equals(currentCode.getActivateCode()))
+                .findAny()
+                .orElseThrow(() -> new UsernameNotFoundException("Code not found"));
         try {
-            if (user == null) {
+            if (activateCode == null) {
                 throw new IllegalArgumentException("Invalid user activation code");
             }
-            user.setActivationCode(null);
-            user.setActivate(true);
-            log.info("ActivateUser - user: {} successfully activated", user);
-            return userRepository.save(user);
+            activateCode.setActivateCode(null);
+            activateCode.setActivate(false);
+            User user = userRepository.getByUsername(activateCode.getUsername());
+            user.setStatus(StatusUser.ACTIVE);
+            activateCodeRepository.save(activateCode);
+            userRepository.save(user);
+
+            log.info("User - {} was activated",user);
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Access denied, user already activated or not registered", ex);
@@ -85,30 +89,39 @@ public class UserServiceImpl implements UserService {
     @Override
     public User forgotPassword(UserDto userDto) {
         User user = UserMapper.INSTANCE.fromDTO(userDto);
-        User existUser = userRepository.getByUsername(user.getUsername());
-        if (existUser != null) {
+        User existUser = userRepository.findByEmail(user.getEmail());
+        if (existUser == null) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "User is exist");
+                    HttpStatus.NOT_FOUND, "Mail is not registered");
         }
+        ActivateCode activateCode = setActivateCode(existUser);
+        sendMessageResetPassword(existUser, activateCode.getActivateCode());
 
-        User forgotPasswordUser = setActivateCode(user);
-        sendMessage(forgotPasswordUser);
-        log.info("forgotPasswordUser - user: {} should activate account", forgotPasswordUser);
-        return forgotPasswordUser;
+        log.info("forgotPasswordUser - user: {} should activate account", existUser);
+        return existUser;
     }
 
     @Override
     public User resetPassword(String code, UserDto userDto) {
         User user = UserMapper.INSTANCE.fromDTO(userDto);
-        User userFromDataBase = userRepository.findByActivationCode(code);
+        user = userRepository.getByUsername(user.getUsername());
+        List<ActivateCode> activateCodes = (List<ActivateCode>) activateCodeRepository.findAll();
+        ActivateCode activateCode = activateCodes.stream()
+                .filter(currentCode -> code.equals(currentCode.getActivateCode()))
+                .findAny()
+                .orElseThrow(() -> new UsernameNotFoundException("Code not found"));
         try {
-            if (user == userFromDataBase) {
+            if (!user.getUsername().equals(activateCode.getUsername())) {
                 throw new IllegalArgumentException("Invalid user activation code");
             }
-            user.setActivationCode(null);
-            user.setActivate(true);
+            activateCode.setActivateCode(null);
+            activateCode.setActivate(false);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setUpdated(new Date());
+
             log.info("ActivateUser - user: {} successfully activated", user);
+
+            activateCodeRepository.save(activateCode);
             return userRepository.save(user);
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(
@@ -116,37 +129,36 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
-    public User findById(Long id) {
-        User result = userRepository.findById(id).orElseThrow(
-                () -> new UsernameNotFoundException("User is not found"));
 
-        log.info("FindById - user: {} found by id: {}", result, id);
-        return result;
-    }
-
-    @Override
-    public void delete(Long id) {
-        userRepository.deleteById(id);
-        log.info("Delete - user with id: {} successfully deleted", id);
-    }
-
-    private User setActivateCode(User user) {
-        user.setActivate(false);
-        user.setActivationCode(UUID.randomUUID().toString());
+    private ActivateCode setActivateCode(User user) {
         if (StringUtils.isEmpty(user.getEmail())) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN, "Email is invalid");
         }
-        return user;
+        ActivateCode activateCode = new ActivateCode();
+        activateCode.setId(UUID.randomUUID());
+        activateCode.setUsername(user.getUsername());
+        activateCode.setActivate(true);
+        activateCode.setActivateCode(UUID.randomUUID().toString());
+        return activateCodeRepository.save(activateCode);
     }
 
-    private void sendMessage(User user) {
+    private void sendMessageRegistration(User user, String code) {
         String message = String.format(
                 "Hello, %s! \n" +
-                        "Welcome to here. Please, visit next link: http://localhost:9090/api/registration/activate/%s",
+                        "Welcome to blog. Please, visit next link: http://localhost:9090/api/registration/activate/%s",
                 user.getUsername(),
-                user.getActivationCode());
+                code);
+
+        mailSender.send(user.getEmail(), "Activation Code", message);
+    }
+
+    private void sendMessageResetPassword(User user, String code) {
+        String message = String.format(
+                "Hello, %s! \n" +
+                        "Welcome to blog. Please, visit next link: http://localhost:9090/api/auth/reset/%s",
+                user.getUsername(),
+                code);
 
         mailSender.send(user.getEmail(), "Activation Code", message);
     }

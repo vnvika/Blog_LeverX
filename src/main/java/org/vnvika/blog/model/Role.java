@@ -1,11 +1,13 @@
 package org.vnvika.blog.model;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import java.util.List;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
