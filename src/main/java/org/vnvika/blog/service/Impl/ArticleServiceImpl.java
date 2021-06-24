@@ -62,9 +62,13 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     public Article update(ArticleDto articleDto, Long articleId) {
         final Article article = articleRepository.getById(articleId);
+        final Article changeArticle = ArticleMapper.INSTANCE.fromDTO(articleDto);
         if (article == null || !article.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
             throw new IllegalArgumentException("Article not found or you don't have access");
         }
+        article.setStatus(changeArticle.getStatus());
+        article.setTitle(changeArticle.getTitle());
+        article.setText(changeArticle.getText());
         article.setUpdatedAt(LocalDate.now());
         return articleRepository.save(article);
     }
