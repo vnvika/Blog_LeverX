@@ -6,7 +6,7 @@ import org.vnvika.blog.dto.CommentPageDto;
 import org.vnvika.blog.model.Comment;
 
 public interface CommentService {
-    CommentPageDto getComment(long article_id, long comment_id, Pageable pageable);
+    CommentDto getComment(long article_id, long comment_id);
 
     CommentPageDto getArticleAllComments(long article_id, Pageable pageable);
 

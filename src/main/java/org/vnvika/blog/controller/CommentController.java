@@ -21,8 +21,8 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/{article_id}/comments/{comment_id}")
-    public ResponseEntity<CommentPageDto> getComments(@PathVariable long article_id,@PathVariable long comment_id, Pageable pageable){
-        return ResponseEntity.ok(commentService.getComment(article_id,comment_id,pageable));
+    public ResponseEntity<CommentDto> getComments(@PathVariable long article_id,@PathVariable long comment_id){
+        return ResponseEntity.ok(commentService.getComment(article_id,comment_id));
     }
 
     @GetMapping("/{article_id}/comments")
