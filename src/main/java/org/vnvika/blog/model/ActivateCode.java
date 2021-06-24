@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @RequiredArgsConstructor
-@RedisHash("Activate")
+@RedisHash(value = "Activate", timeToLive = 86400)
 public class ActivateCode implements Serializable {
     @Id
     private UUID id;
