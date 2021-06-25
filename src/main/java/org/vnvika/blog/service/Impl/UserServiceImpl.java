@@ -11,26 +11,29 @@ import org.springframework.web.server.ResponseStatusException;
 import org.vnvika.blog.dto.UserDto;
 import org.vnvika.blog.mapper.UserMapper;
 import org.vnvika.blog.model.ActivateCode;
+import org.vnvika.blog.model.Role;
 import org.vnvika.blog.model.StatusUser;
 import org.vnvika.blog.model.User;
 import org.vnvika.blog.repository.ActivateCodeRepository;
+import org.vnvika.blog.repository.RoleRepository;
 import org.vnvika.blog.repository.UserRepository;
 import org.vnvika.blog.service.MailSender;
 import org.vnvika.blog.service.UserService;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private static final String ROLE_USER = "USER";
+
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailSender mailSender;
     private final ActivateCodeRepository activateCodeRepository;
+    private final RoleRepository roleRepository;
 
 
     @Override
@@ -50,6 +53,12 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT, "User is exist");
         }
+
+        Role roleUser = roleRepository.findByName(ROLE_USER);
+        Set<Role> userRoles = new HashSet<>();
+        userRoles.add(roleUser);
+
+        user.setRoles(userRoles);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setStatus(StatusUser.NOT_ACTIVE);
         user.setCreated(new Date());
