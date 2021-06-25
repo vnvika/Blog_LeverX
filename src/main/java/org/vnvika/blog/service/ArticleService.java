@@ -1,5 +1,6 @@
 package org.vnvika.blog.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.vnvika.blog.dto.ArticleDto;
 import org.vnvika.blog.dto.ArticlePageDto;
@@ -11,4 +12,5 @@ public interface ArticleService {
     Article save(ArticleDto articleDto);
     Article update(ArticleDto articleDto, Long articleId);
     void delete(Long articleId);
+    ArticlePageDto getArticlePageDto(Page<Article> articlesPage, Pageable pageable);
 }
