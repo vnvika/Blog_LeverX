@@ -9,3 +9,9 @@
 ### 3. Interacting with the application ~ `12h`
 ### 4. Testing ~ `2h`
 
+## How to run application?
+write in the console:
+
+`mvn clean package`
+
+`mvn spring-boot:run`
