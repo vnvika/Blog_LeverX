@@ -11,5 +11,4 @@ public class TagDto {
     private Long id;
     @NotBlank
     private String name;
-    private Long count;
 }

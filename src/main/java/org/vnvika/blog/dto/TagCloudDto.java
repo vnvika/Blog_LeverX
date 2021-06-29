@@ -8,7 +8,6 @@ import javax.validation.constraints.NotBlank;
 @Data
 @Builder
 public class TagCloudDto {
-    @NotBlank
     private final String name;
     private final Long count;
 }

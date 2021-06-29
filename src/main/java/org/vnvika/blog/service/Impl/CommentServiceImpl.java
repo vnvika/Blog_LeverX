@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.vnvika.blog.dto.CommentDto;
 import org.vnvika.blog.dto.CommentPageDto;
+import org.vnvika.blog.mapper.ArticleMapper;
 import org.vnvika.blog.mapper.CommentMapper;
 import org.vnvika.blog.model.Article;
 import org.vnvika.blog.model.Comment;
@@ -31,10 +32,10 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
 
     @Override
-    public CommentPageDto getComment(long article_id, long comment_id, Pageable pageable) {
-        final Page<Comment> commentsPage = commentRepository.findByIdAndArticleId(article_id, comment_id, pageable);
-        log.info("getComment {}", commentsPage);
-        return getCommentPageDto(commentsPage, pageable);
+    public CommentDto getComment(long article_id, long comment_id) {
+        final Comment comment = commentRepository.findByIdAndArticleId(article_id, comment_id);
+        log.info("getComment {}", comment);
+        return CommentMapper.INSTANCE.toDTO(comment);
     }
 
     @Override
@@ -59,7 +60,7 @@ public class CommentServiceImpl implements CommentService {
     public void delete(long article_id, long comment_id) {
         final Comment comment = commentRepository.getByIdAndArticleId(comment_id, article_id);
         if (comment != null && comment.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
-            commentRepository.delete(comment);
+            commentRepository.deleteById(comment.getId());
             log.info("Delete completed");
         } else {
             throw new IllegalArgumentException("Comment not found or you don't have access");

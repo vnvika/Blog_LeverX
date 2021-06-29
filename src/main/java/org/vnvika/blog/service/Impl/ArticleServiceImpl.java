@@ -62,9 +62,13 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     public Article update(ArticleDto articleDto, Long articleId) {
         final Article article = articleRepository.getById(articleId);
+        final Article changeArticle = ArticleMapper.INSTANCE.fromDTO(articleDto);
         if (article == null || !article.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
             throw new IllegalArgumentException("Article not found or you don't have access");
         }
+        article.setStatus(changeArticle.getStatus());
+        article.setTitle(changeArticle.getTitle());
+        article.setText(changeArticle.getText());
         article.setUpdatedAt(LocalDate.now());
         return articleRepository.save(article);
     }
@@ -74,14 +78,15 @@ public class ArticleServiceImpl implements ArticleService {
     public void delete(Long articleId) {
         final Article article = articleRepository.getById(articleId);
         if (article != null && article.getUser().getUsername().equals(getUsernameOfCurrentUser())) {
-            articleRepository.delete(article);
+            articleRepository.deleteById(article.getId());
             log.info("Delete completed");
         } else {
             throw new IllegalArgumentException("Article not found or you don't have access");
         }
     }
 
-    private ArticlePageDto getArticlePageDto(Page<Article> articlesPage, Pageable pageable) {
+    @Override
+    public ArticlePageDto getArticlePageDto(Page<Article> articlesPage, Pageable pageable) {
         final List<ArticleDto> articleDtos = new ArrayList<>();
         for (Article article : articlesPage.getContent()) {
             final ArticleDto articleDto = ArticleMapper.INSTANCE.toDTO(article);

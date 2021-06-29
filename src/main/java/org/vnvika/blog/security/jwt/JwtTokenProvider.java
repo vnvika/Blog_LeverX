@@ -18,6 +18,9 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider implements TokenProvider {
 
+    private static final String HEADER_STRING = "Authorization";
+    private static final String TOKEN_PREFIX = "Bearer ";
+
     @Value("${jwt.token.secret}")
     private String secret;
 
@@ -59,8 +62,8 @@ public class JwtTokenProvider implements TokenProvider {
     }
 
     public String resolveToken(HttpServletRequest req) {
-        final String bearerToken = req.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+        final String bearerToken = req.getHeader(HEADER_STRING);
+        if (bearerToken != null && bearerToken.startsWith(TOKEN_PREFIX)) {
             return bearerToken.substring(7);
         }
         return null;
